@@ -9,15 +9,34 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>19</maven.compiler.source>
-        <maven.compiler.target>19</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
     </properties>
 
-    <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync -->
-    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>org.example.Main</mainClass>
+                    <!-- 可选：如果需要传递参数，可以在此处配置 -->
+                    <!-- <arguments>
+                        <argument>arg1</argument>
+                        <argument>arg2</argument>
+                    </arguments> -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
