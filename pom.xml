@@ -8,12 +8,13 @@
     <artifactId>Template-Java-Projects-with-Maven</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.target>1.11</maven.compiler.target>
-        <maven.compiler.source>1.11</maven.compiler.source>
-        <java.version>1.11</java.version>
-    </properties>
+<properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.target>11.0.19</maven.compiler.target>
+    <maven.compiler.source>11.0.19</maven.compiler.source>
+    <java.version>11.0.19</java.version>
+</properties>
+
 
     <build>
         <plugins>
