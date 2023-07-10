@@ -1,8 +1,9 @@
 vscode:
   extensions:
     - DotJoshJohnson.xml
-    - redhat.java
     - DotJoshJohnson.xml
+    - vscjava.vscode-java-pack
+    - redhat.java
 
 tasks:
   - name: java project build with maven
