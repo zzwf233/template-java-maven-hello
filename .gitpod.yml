@@ -17,4 +17,4 @@ tasks:
     command: |
       mvn compile
       # mvn exec:java -Dexec.mainClass="org.example.Main"
-      mvn exec:java
+      # mvn exec:java
