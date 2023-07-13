@@ -3,29 +3,18 @@ package org.example;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class MyUser {
-    private static final String DB_URL1 = "jdbc:sqlite:demo.db";
-    private static final String CREATE_TABLE_CUSTOMERS = "CREATE TABLE IF NOT EXISTS customers(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,password TEXT)";
-    
-    private final Connection connection;
+    private final List<Customer> customers;
     private final List<Product> products;
     private Customer loggedInCustomer;
     private final ShoppingCart shoppingCart;
 
     public MyUser() {
-        connection=createConnection();
+        customers = new ArrayList<>();
         products = new ArrayList<>();
         loggedInCustomer = null;
         shoppingCart = new ShoppingCart();
-        
-        createTables();
     }
     protected void userSystem(Scanner scanner) {
         boolean exit = false;
@@ -57,38 +46,16 @@ public class MyUser {
             }
         }
     }
-
-    private Connection createConnection(){
-        try{
-            Class.forName("org.sqlite.JDBC");
-            return DriverManager.getConnection(DB_URL1);
-        }catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    private void createTables() {
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(CREATE_TABLE_CUSTOMERS);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void registerCustomer(Scanner scanner) {
         System.out.print("请输入用户名：");
         String name = scanner.next();
         System.out.print("请输入密码：");
         String password = scanner.next();
 
-        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO customers (name, password) VALUES (?, ?)")) {
-            statement.setString(1, name);
-            statement.setString(2, password);
-            statement.executeUpdate();
-            System.out.println("注册成功！");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        Customer newCustomer = new Customer(name, password);
+        customers.add(newCustomer);
+
+        System.out.println("注册成功！");
     }
     private Customer UserLogin(Scanner scanner) {
         System.out.print("请输入用户名：");
@@ -96,20 +63,15 @@ public class MyUser {
         System.out.print("请输入密码：");
         String password = scanner.next();
 
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM customers WHERE name = ? AND password = ?")) {
-            statement.setString(1, name);
-            statement.setString(2, password);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                int customerId = resultSet.getInt("id");
-                String customerName = resultSet.getString("name");
-                System.out.println("用户账号登陆成功！");
-                return new Customer(customerId,customerName, password);
-            } else {
-                System.out.println("用户名或密码错误！");
+        for (Customer customer : customers) {
+            if (customer.getName().equals(name) && customer.getPassword().equals(password)) {
+                System.out.println("登录成功！");
+                return customer;
+            }else if(!customer.getName().equals(name)){
+                System.out.println("用户名错误！");
+            }else if(!customer.getPassword().equals(password)){
+                System.out.println("密码错误！");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -198,4 +160,3 @@ public class MyUser {
         }
     }
 }
-

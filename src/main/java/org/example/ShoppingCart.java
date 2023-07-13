@@ -31,11 +31,6 @@ class ShoppingCart {
         }
     }
 
-    public void updateQuantity(Product product, int newQuantity) {
-        if (items.containsKey(product)) {
-            items.put(product, newQuantity);
-        }
-    }
     public double calculateTotal() {
         double total = 0.0;
         for (Map.Entry<Product, Integer> entry : items.entrySet()) {
@@ -46,6 +41,11 @@ class ShoppingCart {
         return total;
     }
 
+    public void updateQuantity(Product product, int newQuantity) {
+        if (items.containsKey(product)) {
+            items.put(product, newQuantity);
+        }
+    }
     public void clear() {
         items.clear();
     }
@@ -60,4 +60,3 @@ class ShoppingCart {
         System.out.println("Total: $" + calculateTotal());
     }
 }
-

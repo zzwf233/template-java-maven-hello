@@ -4,15 +4,12 @@ package org.example;
 class Admin {
     private String username;
     private String password;
-    private int adminId;
-    public Admin(int adminId,String username, String password) {
-        this.adminId=adminId;
+
+    public Admin(String username, String password) {
         this.username = username;
         this.password = password;
     }
-    public int getAdminId(){
-        return adminId;
-    }
+
     public String getUsername() {
         return username;
     }
