@@ -3,18 +3,46 @@ package org.example;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 public class MyAdmin {
+    private static final String DB_URL2 = "jdbc:sqlite:Admin.db";
+    private static final String CREATE_TABLE_ADMIN = "CREATE TABLE IF NOT EXISTS admin(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,password TEXT)";
+
+    private final Connection connection;
     private final List<Customer> customers;
     private final List<Product> products;
-    private Customer loggedInCustomer;
+    private Admin loggedInAdmin;
 
     private Admin admin;
     public MyAdmin() {
+        connection = createConnection();
         customers = new ArrayList<>();
         products = new ArrayList<>();
-        loggedInCustomer = null;
+        loggedInAdmin = null;
         admin = null;
+
+        createTables();
+    }
+    private void createTables() {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(CREATE_TABLE_ADMIN);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    private Connection createConnection(){
+        try{
+            Class.forName("org.sqlite.JDBC");
+            return DriverManager.getConnection(DB_URL2);
+        }catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
     protected void adminSystem(Scanner scanner) {
         boolean exit = false;
@@ -32,7 +60,7 @@ public class MyAdmin {
                     registerAdmin(scanner);
                     break;
                 case 2:
-                    if (adminLogin(scanner)) {
+                    if (adminLogin(scanner) != null) {
                         adminMenu(scanner);
                     }
                     break;
@@ -52,24 +80,40 @@ public class MyAdmin {
                 return;
             }
             System.out.print("请输入管理员用户名：");
-            String username = scanner.next();
-            if (!isValidUsername(username)) {
+            String adminname = scanner.next();
+            if (!isValidUsername(adminname)) {
                 throw new IllegalArgumentException("无效的用户名！请输入数字或英文");
             }
             System.out.print("请输入管理员密码：");
             String password = scanner.next();
-            if (!isValidUserpassword(username)) {
+            if (!isValidUserpassword(password)) {
                 throw new IllegalArgumentException("无效的用户名！请输入数字或英文");
             }
-            admin = new Admin(username, password);
-            System.out.println("管理员账户注册成功！");
+            try (PreparedStatement statement = connection.prepareStatement("INSERT INTO admin (name, password) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, adminname);
+                statement.setString(2, password);
+                int rowsAffected = statement.executeUpdate();
+                if (rowsAffected > 0) {
+                    ResultSet generatedKeys = statement.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        int adminId = generatedKeys.getInt(1);
+                        admin = new Admin(adminId, adminname, password);
+                        System.out.println("管理员账号注册成功！");
+                    }
+                } else {
+                    System.out.println("注册管理员账号失败！");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            
         }catch (IllegalArgumentException e) {
             System.out.println("错误： " + e.getMessage());
         }
     }
-    private boolean isValidUsername(String username) {
+    private boolean isValidUsername(String adminname) {
         String regex = "^[a-zA-Z0-9]+$";
-        return username.matches(regex);
+        return adminname.matches(regex);
     }
     private boolean isValidUserpassword(String userpassword) {
         String regex = "^[a-zA-Z0-9]+$";
@@ -77,22 +121,33 @@ public class MyAdmin {
     }
 
 
-    private boolean adminLogin(Scanner scanner) {
+    private Admin adminLogin(Scanner scanner) {
         if (admin == null) {
             System.out.println("管理员账户不存在，请先注册管理员账户！");
-            return false;
+            return null;
         }
         System.out.print("请输入管理员用户名：");
-        String username = scanner.next();
+        String adminname = scanner.next();
         System.out.print("请输入管理员密码：");
         String password = scanner.next();
-        if (admin.getUsername().equals(username) && admin.getPassword().equals(password)) {
-            System.out.println("管理员登录成功！");
-            return true;
-        } else {
-            System.out.println("管理员用户名或密码错误！");
-            return false;
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM admin WHERE name = ? AND password = ?")) {
+            statement.setString(1, adminname);
+            statement.setString(2, password);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                int adminId = resultSet.getInt("id");
+                String adminName = resultSet.getString("name");
+                admin= new Admin(adminId, adminName, password);
+                System.out.println("管理员账号登陆成功！");
+                return admin;
+            } else {
+                System.out.println("用户名或密码错误！");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return null;
     }
     private void adminMenu(Scanner scanner) {
         boolean exit = false;
@@ -136,7 +191,7 @@ public class MyAdmin {
                 case 1:
                     System.out.print("请输入新密码：");
                     String newPassword = scanner.next();
-                    loggedInCustomer = new Customer(loggedInCustomer.getName(), newPassword);
+                    loggedInAdmin = new Admin(loggedInAdmin.getAdminId(),loggedInAdmin.getUsername(), newPassword);
                     System.out.println("密码修改成功！");
                     break;
                 case 2:
